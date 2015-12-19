@@ -1,0 +1,18 @@
+#BlueJ class context
+comment0.params=name
+comment0.target=Bouton(java.lang.String)
+comment1.params=n
+comment1.target=void\ setText(java.lang.String)
+comment2.params=g
+comment2.target=void\ paintComponent(java.awt.Graphics)
+comment3.params=event
+comment3.target=void\ mouseClicked(java.awt.event.MouseEvent)
+comment4.params=event
+comment4.target=void\ mouseEntered(java.awt.event.MouseEvent)
+comment5.params=event
+comment5.target=void\ mouseExited(java.awt.event.MouseEvent)
+comment6.params=event
+comment6.target=void\ mousePressed(java.awt.event.MouseEvent)
+comment7.params=event
+comment7.target=void\ mouseReleased(java.awt.event.MouseEvent)
+numComments=8

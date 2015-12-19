@@ -1,0 +1,10 @@
+#BlueJ class context
+comment0.params=x\ y\ joueur
+comment0.target=Guy(int,\ int,\ int)
+comment1.params=g
+comment1.target=void\ draw(java.awt.Graphics)
+comment2.params=dir
+comment2.target=void\ move(int)
+comment3.params=g
+comment3.target=void\ att(java.awt.Graphics)
+numComments=4

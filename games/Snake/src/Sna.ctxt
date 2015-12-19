@@ -1,0 +1,10 @@
+#BlueJ class context
+comment0.params=X\ Y\ dir
+comment0.target=Sna(int,\ int,\ int)
+comment1.params=X\ Y
+comment1.target=void\ move(int,\ int)
+comment2.params=g
+comment2.target=void\ draw(java.awt.Graphics)
+comment3.params=g
+comment3.target=void\ drawScore(java.awt.Graphics)
+numComments=4

@@ -1,0 +1,12 @@
+#BlueJ class context
+comment0.params=
+comment0.target=void\ reinitialise()
+comment1.params=g
+comment1.target=void\ draw(java.awt.Graphics)
+comment2.params=alpha
+comment2.target=java.awt.AlphaComposite\ makeComposite(float)
+comment3.params=pos0\ pos1\ pl\ size0\ size1
+comment3.target=void\ obstacle(int,\ int,\ int[],\ int,\ int)
+comment4.params=x\ y\ x2\ y2\ X\ Y\ X2\ Y2
+comment4.target=boolean\ contains(int,\ int,\ int,\ int,\ int,\ int,\ int,\ int)
+numComments=5
