@@ -1,0 +1,2 @@
+Question 6:
+The second version of the basic-agent.py is far more efficient due to the fact, that we are doing a alpha-beta pruning. Which is also a kind of MiniMax so the value of the node is important. In the first part, we didn’t know which of the « advantageous node » is better than the other so that algorithm take one without any preferences.
