@@ -8,6 +8,8 @@ The game starts only when you have 2 sessions of the game connected together. Th
 needs to host, and the other needs to join the ip address of the server (written on top).
 The goal is to dominate the galaxy, get ressources, build unit factories, create ships and fight.
 
+Move your units on another planet by pressin 'a' and clicking on the other planet. It needs to be in range (white circle).
+
 You can get new ships by building the lab, you get magic power if you create the magic tower.
 The mines gives you ressources.
 Be careful, you can build them only once, so defend that planet or the ennemi will destroy it and probably win.
