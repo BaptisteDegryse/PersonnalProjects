@@ -27,6 +27,10 @@ def encode_creation(unit, player):
     (x, y) = unit.get_pos()
     return ["creation", type(unit), x, y, player.id]
 
+def encode_upgrade(unit,player):
+    (x, y) = unit.get_pos()
+    return ["upgrade", x, y, player.id]
+
 
 def encode_action(unit, action):
     (x, y) = unit.get_pos()

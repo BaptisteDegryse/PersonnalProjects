@@ -73,7 +73,7 @@ class Server(Thread):
     def update_game(self,msg):
         for line in msg_to_tab(msg):
             self.game.update_from_network(line)
-            if len(line)>1 and line[0]=="creation":
+            if len(line)>1 and (line[0]=="creation" or line[0]=="upgrade"):
                 self.created_tab.append(line)
         self.done_client += 1
         if self.done_client == self.next_player_id:

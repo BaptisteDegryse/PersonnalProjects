@@ -3,12 +3,14 @@ import random
 from threading import Thread
 import time
 from editor.bad_loader import load_map
+from graphics.ButtonManager import ButtonManager
 
 from graphics.Window import Window
 from main import Unit
 from main.Constants import TILE_SIZE
 from main.Player import Player
-from network.NetworkUtils import encode_creation, encode_action
+from main.Unit import Soldier, Archer, Miner
+from network.NetworkUtils import encode_creation, encode_action, encode_upgrade
 
 __author__ = 'Baptiste'
 
@@ -26,7 +28,7 @@ class Game:
         self.window = w
         self.click_x = 0
         self.click_y = 0
-        self.turn = "planning"
+        self.current_phase = "planning"
         self.motion_img = None
         self.show_plan = True
 
@@ -38,16 +40,17 @@ class Game:
         self.player_id = 0
         self.server = server
         self.client = client
-        self.unit_creation_tab = []
+        self.premoves_tab = []
 
         self.keys = []
         w.focus()
 
     def run(self):
-        self.window.fill_player_menu(
-            self.players[self.player_id].create_action_buttons(self.create_soldier, self.create_archer,
-                                                               self.create_miner, self.next_step,
-                                                               self.change_show_plan))
+        #self.window.fill_player_menu(
+        #    self.players[self.player_id].create_action_buttons(self.create_soldier, self.create_archer,
+        #                                                       self.create_miner, self.next_step,
+        #                                                       self.change_show_plan))
+        self.menu = ButtonManager(self,self.players[self.player_id],self.window)
         self.update()
         self.window.mainloop()
         if self.server is not None:
@@ -58,7 +61,7 @@ class Game:
         self.click_y = event.y
 
     def motion(self, event):
-        if not self.turn=="planning":
+        if not self.current_phase=="planning":
             return
 
         x = min(self.click_x, event.x) // TILE_SIZE
@@ -75,7 +78,7 @@ class Game:
         return l
 
     def release(self, event):
-        if not self.turn=="planning":
+        if not self.current_phase=="planning":
             return
 
         if 'a' in self.keys:
@@ -94,14 +97,15 @@ class Game:
                     u.unselect()
 
         self.update()
+        self.menu.update_menu(self.get_selected_units())
         self.window.delete_zone()
 
     def key_pressed(self, event):
         key = event.keysym
 
-        if key == "space" and not self.turn=="planning":
-            self.next_step()
-        if not self.turn=="planning":
+        if key=='n' or (key == "space" and not self.current_phase=="planning"):
+            self.menu.next_turn()
+        if not self.current_phase=="planning":
             return
 
         self.update_zone(key)
@@ -109,7 +113,7 @@ class Game:
         self.update_key(key, True)
 
     def key_released(self, event):
-        if not self.turn=="planning":
+        if not self.current_phase=="planning":
             return
         key = event.keysym
         self.window.delete_zone()
@@ -119,7 +123,8 @@ class Game:
         if pressed:
             self.keys.append(name)
         else:
-            self.keys.remove(name)
+            if name in self.keys:
+                self.keys.remove(name)
 
     def move_selected_units(self, x, y):
         closest_unit = self.find_closest_selected_unit(x, y)
@@ -191,12 +196,13 @@ class Game:
             for u in self.get_all_units():
                 self.window.draw_plan(u)
 
-        self.players[self.player_id].update_action_buttons(self.get_selected_units())
+        #self.players[self.player_id].update_action_buttons(self.get_selected_units())
+        self.window.canvas.focus_set()
 
     def update_zone(self, key):
         if key == 'a':
             for u in self.get_selected_units():
-                self.window.draw_zone_around(u.pos, u.attack_range, 'red')
+                self.window.draw_zone(u.get_attack_tile_list(),'red')
         if key == 'z':
             for u in self.get_selected_units():
                 self.window.draw_zone_around(u.pos, u.max_move, 'blue')
@@ -205,25 +211,12 @@ class Game:
         for c in self.get_selected_castles():
             c.set_unit_creation_tile((x, y))
 
-    def create_soldier(self):
+    def create_unit_type(self,type):
         for p in self.find_creation_pos():
-            self.players[self.player_id].create_soldier(p[0], p[1])
+            self.players[self.player_id].create_type(type,p[0], p[1])
             u = self.get_unit_on(p[0],p[1])
-            self.unit_creation_tab.append(encode_creation(u, self.players[self.player_id]))
-        self.update()
-
-    def create_archer(self):
-        for p in self.find_creation_pos():
-            self.players[self.player_id].create_archer(p[0], p[1])
-            u = self.get_unit_on(p[0],p[1])
-            self.unit_creation_tab.append(encode_creation(u, self.players[self.player_id]))
-        self.update()
-
-    def create_miner(self):
-        for p in self.find_creation_pos():
-            self.players[self.player_id].create_miner(p[0], p[1])
-            u = self.get_unit_on(p[0],p[1])
-            self.unit_creation_tab.append(encode_creation(u, self.players[self.player_id]))
+            if u is not None:
+                self.premoves_tab.append(encode_creation(u, self.players[self.player_id]))
         self.update()
 
     def find_creation_pos(self):
@@ -233,25 +226,26 @@ class Game:
                 yield pos
 
     def create_unit(self, key):
-        if key == 's':
-            self.create_soldier()
-        elif key == 'd':
-            self.create_archer()
-        elif key == 'f':
-            self.create_miner()
+        for unit_class in list(Unit.Unit.__subclasses__())+list(Unit.Castle.__subclasses__()):
+            if key == unit_class.short_cut:
+                self.create_unit_type(unit_class)
+
+    def upgrade_unit(self,unit):
+        if self.players[self.player_id].upgrade_unit(unit):
+            self.premoves_tab.append(encode_upgrade(unit, self.players[self.player_id]))
+
 
     def next_step(self):
-        if self.turn == "planning":
-            self.turn = "show_other_plan"
-            self.window.wait_for_player()
+        if self.current_phase == "planning":
+            self.current_phase = "show_other_plan"
+            self.menu.wait_for_others()
             self.next_turn()
-        elif self.turn == "show_other_plan":
-            self.turn = "resolve_attack"
+        elif self.current_phase == "show_other_plan":
+            self.current_phase = "resolve_attack"
             self.resolve_day_if_plan('attack')
-        elif self.turn == "resolve_attack":
-            self.turn = "planning"
+        elif self.current_phase == "resolve_attack":
+            self.current_phase = "planning"
             self.resolve_day_if_plan('move')
-            self.window.done_waiting_for_player()
         self.update()
 
 
@@ -336,8 +330,8 @@ class Game:
                 return p
 
     def send_my_actions(self):
-        all_infos = copy.deepcopy(self.unit_creation_tab)
-        self.unit_creation_tab = []
+        all_infos = copy.deepcopy(self.premoves_tab)
+        self.premoves_tab = []
         for u in self.players[self.player_id].get_all_units():
             if self.client is not None:
                 all_infos.append(encode_action(u, u.plan))
@@ -351,7 +345,7 @@ class Game:
 
     def get_others_actions(self):
         while not self.client.get_others_actions():
-            time.sleep(0.5)
+            pass
 
     def change_show_plan(self):
         self.show_plan = not self.show_plan
@@ -359,37 +353,27 @@ class Game:
 
     def update_from_network(self, tab):
         if len(tab) > 1 and tab[0] == "action":
+
             if len(tab) > 3 and tab[1] == "stay":
                 u = self.find_unit_on((int(tab[2]), int(tab[3])))
-                if u is None:
-                    print("erreur (move), no unit on " + str(tab))
                 u.plan_stay()
 
             elif len(tab) > 4 and tab[1] == "move":
                 u = self.find_unit_on((int(tab[2]), int(tab[3])))
-                if u is None:
-                    print("erreur (move), no unit on " + str(tab))
                 u.plan_move((int(tab[4]), int(tab[5])))
 
             elif len(tab) > 4 and tab[1] == "attack":
                 u = self.find_unit_on((int(tab[2]), int(tab[3])))
-                if u is None:
-                    print("erreur (attack), no unit on " + str(tab))
                 u.plan_attack(self.find_unit_on((int(tab[4]), int(tab[5]))))
 
         elif len(tab) > 4 and tab[0] == "creation":
-            if tab[1] == "<class 'main.Unit.Soldier'>":
-                self.players[int(tab[4])].create_free_soldier(int(tab[2]), int(tab[3]))
-            elif tab[1] == "<class 'main.Unit.Archer'>":
-                self.players[int(tab[4])].create_free_archer(int(tab[2]), int(tab[3]))
-            elif tab[1] == "<class 'main.Unit.Miner'>":
-                self.players[int(tab[4])].create_free_miner(int(tab[2]), int(tab[3]))
-            elif tab[1] == "<class 'main.Unit.GoldMine'>":
-                self.players[int(tab[4])].create_free_gold_mine(int(tab[2]), int(tab[3]))
-            elif tab[1] == "<class 'main.Unit.Castle'>":
-                self.players[int(tab[4])].create_free_castle(int(tab[2]), int(tab[3]))
-            else:
-                print("creation error : " + str(tab))
+            type_of_unit = tab[1]
+            for t in list(Unit.Unit.__subclasses__()) + list(Unit.Castle.__subclasses__()):
+                if str(t)==type_of_unit:
+                    self.players[int(tab[4])].create_free_type(t,int(tab[2]), int(tab[3]))
+
+        elif len(tab) > 3 and tab[0] == "upgrade":
+            self.players[int(tab[3])].upgrade_free(int(tab[1]), int(tab[2]))
 
         elif len(tab) > 2 and tab[0] == "player_id":
             self.player_id = int(tab[1])

@@ -5,8 +5,7 @@ from PIL import ImageTk, Image
 
 image_book = {}
 
-
-def getImage(name):
+def get_image(name):
     img = image_book.get(name)
     if img is not None:
         return img

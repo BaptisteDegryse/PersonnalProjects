@@ -83,12 +83,6 @@ class Window(Frame):
             if 0 <= i < len(self.img_grid) and 0 <= j < len(self.img_grid[i]):
                 self.canvas.itemconfig(self.img_grid[i][j], fill="purple")
 
-    def fill_player_menu(self, widget_list):
-        wl = list(widget_list)
-        for w in wl:
-            w.pack(side="left")
-        self.next_day_button = wl[-1]
-
     def clear(self, objects):
         for o in objects:
             self.canvas.delete(o.img)
@@ -132,15 +126,15 @@ class Window(Frame):
 
     def draw_zone(self, tiles, color):
         lines = []
-        duplicate_lines = []
+        duplicated_lines = []
         for t in tiles:
             (x, y) = t
             for line in [(x, y, x + 1, y), (x, y, x, y + 1), (x + 1, y, x + 1, y + 1), (x, y + 1, x + 1, y + 1)]:
-                if line in duplicate_lines:
+                if line in duplicated_lines:
                     pass
                 elif line in lines:
                     lines.remove(line)
-                    duplicate_lines.append(line)
+                    duplicated_lines.append(line)
                 else:
                     lines.append(line)
 
@@ -152,9 +146,5 @@ class Window(Frame):
     def delete_zone(self):
         self.canvas.delete('zone')
 
-    def wait_for_player(self):
-        self.next_day_button.config(text="Resolving the turn",state="disable")
 
-    def done_waiting_for_player(self):
-        self.next_day_button.config(text="Next day",state="normal")
 

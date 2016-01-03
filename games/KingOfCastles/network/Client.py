@@ -42,7 +42,8 @@ class Client:
                 print("<-"+msg)
                 actions = [line.split(',') for line in msg.split('\n')]
                 for line in actions:
-                    if not (len(line)>4 and line[0]=='creation' and int(line[4])==self.game.player_id):
+                    if not (len(line)>4 and line[0]=='creation' and int(line[4])==self.game.player_id)\
+                            and not (len(line)>3 and line[0]=='upgrade' and int(line[3])==self.game.player_id):
                         self.update_game(line)
                 return True
 
