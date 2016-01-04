@@ -1,3 +1,8 @@
+import os, sys
+currentScriptPath = os.getcwd()
+if currentScriptPath.find(".app") != -1:
+    sys.path = [os.path.join(os.environ['RESOURCEPATH'], 'lib', 'python3.5', 'lib-dynload')] + sys.path
+
 import socket
 import select
 from main.Game import Game

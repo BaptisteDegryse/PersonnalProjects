@@ -1,7 +1,5 @@
 import copy
 import random
-from threading import Thread
-import time
 from editor.bad_loader import load_map
 from graphics.ButtonManager import ButtonManager
 
@@ -9,7 +7,6 @@ from graphics.Window import Window
 from main import Unit
 from main.Constants import TILE_SIZE
 from main.Player import Player
-from main.Unit import Soldier, Archer, Miner
 from network.NetworkUtils import encode_creation, encode_action, encode_upgrade
 
 __author__ = 'Baptiste'
@@ -46,10 +43,7 @@ class Game:
         w.focus()
 
     def run(self):
-        #self.window.fill_player_menu(
-        #    self.players[self.player_id].create_action_buttons(self.create_soldier, self.create_archer,
-        #                                                       self.create_miner, self.next_step,
-        #                                                       self.change_show_plan))
+
         self.menu = ButtonManager(self,self.players[self.player_id],self.window)
         self.update()
         self.window.mainloop()
